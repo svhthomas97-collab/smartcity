@@ -119,16 +119,13 @@ public class NeighborhoodServiceImpl extends NeighborhoodServiceImplBase {
             }
 
             @Override
-            // Triggered if something goes wrong during the stream
             public void onError(Throwable t) {
                 logger.warning("Error during neighborhood stream: " + t.getMessage());
             }
 
             @Override
-            // Runs when the client has finished sending all its requests
             public void onCompleted() {
                 System.out.printf(LocalTime.now().toString() + ": NeighborhoodRequest stream complete \n");
-
                 // Sort the list to show in Critical status order
                 // Lowest score = worst condition = more urgency
                 collected.sort((a, b) -> Double.compare(a.getScore(), b.getScore()));
