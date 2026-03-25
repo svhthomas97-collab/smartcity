@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "generated.grpc.budget";
+option java_outer_classname = "BudgetAllocationServiceproto";
+
+package budgetallocationservice;
+
+
+service BudgetAllocationService {
+
+
+    //UNARY - Get budget plan for a neighborhood
+  rpc GetBudgetPlan(NeighborhoodBudgetRequest) returns (BudgetPlan) {}
+    //BIDIRECTIONAL STREAMING - Send priorities and receive budget updates
+  rpc AllocateBudget(stream BudgetPriorityRequest) returns (stream BudgetPlan) {}
+
+}
+
+   //  message identifying a location
+
+message NeighborhoodBudgetRequest {
+  string neighborhoodId = 1;
+
+}
+
+message BudgetPriorityRequest {
+  string neighborhoodId = 1;
+  int32 priorityLevel = 2;
+
+}
+
+message BudgetPlan {
+  string neighborhoodId = 1;
+  double allocatedAmount = 2;
+  string status = 3;
+
+}
+ 
+ 
+  
+   
+
+
+

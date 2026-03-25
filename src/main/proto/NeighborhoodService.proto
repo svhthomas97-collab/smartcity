@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "smartcity.generated.neighborhood";
+option java_outer_classname = "NeighborhoodServiceProto";
+
+package neighborhoodservice;
+
+service NeighborhoodService {
+
+  // UNARY - Get the status of one neighborhood by ID
+  rpc GetNeighborhoodStatus(NeighborhoodRequest) returns (NeighborhoodStatus) {}
+
+  // CLIENT STREAMING - Send multiple IDs, get back a list sorted by urgency
+  rpc AnalyzeNeighborhoods(stream NeighborhoodRequest) returns (NeighborhoodList) {}
+}
+
+message NeighborhoodRequest {
+  string neighborhoodId = 1;
+}
+
+message NeighborhoodStatus {
+  string neighborhoodId = 1;
+  double score = 2;
+  string classification = 3;
+  bool informalSettlement = 4;
+  string description = 5;
+}
+
+message NeighborhoodList {
+  repeated NeighborhoodStatus neighborhoods = 1;
+}

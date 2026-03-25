@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "generated.grpc.airquality";
+option java_outer_classname = "AirQualityServiceProto";
+
+package airqualityservice;
+
+
+service AirQualityService {
+
+
+    //UNARY - Register a new sensor
+   rpc RegisterSensor(Sensor) returns (SensorResponse) {}
+  
+    //SERVER STREAMING - Air Quality monitoring for a zone
+  rpc MonitorAirQuality(Zone) returns (stream AirQuality) {}
+
+}
+
+   //  message identifying a location
+
+   message Sensor {
+     string sensorId = 1;
+     string location = 2;
+   }
+
+   message SensorResponse {
+    string status = 1;
+   }
+
+message Zone {
+    string zone = 1;
+   }
+
+message AirQuality {
+    string zone = 1;
+    double pm25 = 2;
+    double co2 = 3;
+    double no2 = 4;
+    string level = 5;
+}
+ 
+ 
+  
+   
+
+
