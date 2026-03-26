@@ -24,22 +24,31 @@ import generated.grpc.airquality.Sensor;
 import generated.grpc.airquality.SensorResponse;
 import generated.grpc.airquality.Zone;
 
+import generated.grpc.budget.BudgetAllocationServiceGrpc;
+import generated.grpc.budget.BudgetPlan;
+import generated.grpc.budget.BudgetPriorityRequest;
+import generated.grpc.budget.NeighborhoodBudgetRequest;
+
 /**
  *
- * @author ThomasNCI
- * This class is the gRPC client (before GUI is implemented, just to test)
+ * @author ThomasNCI This class is the gRPC client (before GUI is implemented,
+ * just to test)
  */
 public class SmartCityClient {
 
     //private final ManagedChannel channel; declaration used only with NeighborhoodServer
     private final ManagedChannel neighborhoodChannel;
     private final ManagedChannel airQualityChannel;
+    private final ManagedChannel budgetChannel;
     //NeighborhoodService Stub (UNARY, STREAMING)
     private final NeighborhoodServiceGrpc.NeighborhoodServiceBlockingStub neighborhoodBlockingStub;
     private final NeighborhoodServiceGrpc.NeighborhoodServiceStub neighborhoodAsyncStub;
     // AirQuality Stub (UNARY, STREAMING)
     private final AirQualityServiceGrpc.AirQualityServiceBlockingStub airBlockingStub;
     private final AirQualityServiceGrpc.AirQualityServiceStub airAsyncStub;
+    //BudgetAllocation Stub (Unary, BiDi)
+    private final BudgetAllocationServiceGrpc.BudgetAllocationServiceBlockingStub budgetBlockingStub;
+    private final BudgetAllocationServiceGrpc.BudgetAllocationServiceStub budgetAsyncStub;
 
     public SmartCityClient() {
         /*        channel = ManagedChannelBuilder.forAddress("localhost", 50051)
@@ -54,10 +63,20 @@ public class SmartCityClient {
                 .usePlaintext()
                 .build();
 
+        budgetChannel = ManagedChannelBuilder.forAddress("localhost", 50053)
+                .usePlaintext()
+                .build();
+
+        //NeighborhoodStubs
         neighborhoodBlockingStub = NeighborhoodServiceGrpc.newBlockingStub(neighborhoodChannel);
         neighborhoodAsyncStub = NeighborhoodServiceGrpc.newStub(neighborhoodChannel);
+        //AirQualityStubs
         airBlockingStub = AirQualityServiceGrpc.newBlockingStub(airQualityChannel);
         airAsyncStub = AirQualityServiceGrpc.newStub(airQualityChannel);
+        //BudgetStubs
+        budgetBlockingStub = BudgetAllocationServiceGrpc.newBlockingStub(budgetChannel);
+        budgetAsyncStub = BudgetAllocationServiceGrpc.newStub(budgetChannel);
+
     }
 
     //NeighborhooStatus - UNARY 
@@ -74,19 +93,6 @@ public class SmartCityClient {
         System.out.println("Classification: " + response.getClassification());
         System.out.println("Informal Settlement: " + response.getInformalSettlement());
         System.out.println("Description: " + response.getDescription());
-    }
-
-    //AirQuality - UNARY
-    public void registerSensor(String sensorId, String location) {
-        //Creates request with ID and sensor location
-        Sensor request = Sensor.newBuilder()
-                .setSensorId(sensorId)
-                .setLocation(location)
-                .build();
-
-        SensorResponse response = airBlockingStub.registerSensor(request);
-        // prints the information
-        System.out.println("Sensor registration response: " + response.getStatus());
     }
 
     //NeighborhooStatus - CLIENT STREAMING
@@ -132,7 +138,20 @@ public class SmartCityClient {
         latch.await(5, TimeUnit.SECONDS);
     }
 
-    //AirQuality
+    //AirQuality - UNARY
+    public void registerSensor(String sensorId, String location) {
+        //Creates request with ID and sensor location
+        Sensor request = Sensor.newBuilder()
+                .setSensorId(sensorId)
+                .setLocation(location)
+                .build();
+
+        SensorResponse response = airBlockingStub.registerSensor(request);
+        // prints the information
+        System.out.println("Sensor registration response: " + response.getStatus());
+    }
+
+    //AirQuality - Server Streaming
     public void monitorAirQuality(String zone) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
 
@@ -170,11 +189,81 @@ public class SmartCityClient {
         latch.await(10, TimeUnit.SECONDS);
     }
 
+    //BudgetPlan - UNARY
+    public void getBudgetPlan(String neighborhoodId) {
+
+        NeighborhoodBudgetRequest request = NeighborhoodBudgetRequest.newBuilder()
+                .setNeighborhoodId(neighborhoodId)
+                .build();
+
+        BudgetPlan response = budgetBlockingStub.getBudgetPlan(request);
+
+        System.out.println("Budget Plan:");
+        System.out.println("Neighborhood: " + response.getNeighborhoodId());
+        System.out.println("Allocated: " + response.getAllocatedAmount());
+        System.out.println("Status: " + response.getStatus());
+        System.out.println("-----------------------------------");
+    }
+
+    //BudgetPlan - BiDi Streaming
+    public void allocateBudgetBiDi() throws InterruptedException {
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        StreamObserver<BudgetPlan> responseObserver = new StreamObserver<BudgetPlan>() {
+
+            @Override
+            public void onNext(BudgetPlan response) {
+                System.out.println("Budget Update:");
+                System.out.println(response.getNeighborhoodId()
+                        + " | Allocated: " + response.getAllocatedAmount()
+                        + " | Status: " + response.getStatus());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                System.err.println("Error in BiDi: " + t.getMessage());
+                latch.countDown();
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("Budget allocation completed.");
+                latch.countDown();
+            }
+        };
+
+        StreamObserver<BudgetPriorityRequest> requestObserver
+                = budgetAsyncStub.allocateBudget(responseObserver);
+
+        // sending multiple requests
+        requestObserver.onNext(BudgetPriorityRequest.newBuilder()
+                .setNeighborhoodId("N001")
+                .setPriorityLevel(9)
+                .build());
+
+        requestObserver.onNext(BudgetPriorityRequest.newBuilder()
+                .setNeighborhoodId("N003")
+                .setPriorityLevel(5)
+                .build());
+
+        requestObserver.onNext(BudgetPriorityRequest.newBuilder()
+                .setNeighborhoodId("N005")
+                .setPriorityLevel(2)
+                .build());
+
+        requestObserver.onCompleted();
+
+        latch.await(10, TimeUnit.SECONDS);
+    }
+
     public void shutdown() throws InterruptedException {
 
         //channel.shutdown().awaitTermination(5, TimeUnit.SECONDS); line used when testing only Neighborhood, now with AirQ it needs two channels.
         neighborhoodChannel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
         airQualityChannel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+        budgetChannel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+
     }
 
     public static void main(String[] args) {
@@ -190,6 +279,10 @@ public class SmartCityClient {
             client.registerSensor("S002", "Industrial Zone");
 
             client.monitorAirQuality("Downtown");
+            
+            //BudgetAllocation tests
+            client.getBudgetPlan("N001");
+            client.allocateBudgetBiDi();
 
         } catch (InterruptedException e) {
             e.printStackTrace();

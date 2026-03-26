@@ -12,9 +12,9 @@ import java.util.logging.Logger;
  *
  * @author ThomasNCI
  */
-public class BudgetServer {
+public class BudgetAllocationServer {
 
-    private static final Logger logger = Logger.getLogger(BudgetServer.class.getName());
+    private static final Logger logger = Logger.getLogger(BudgetAllocationServer.class.getName());
 
     public static void main(String[] args) {
         int port = 50053;
