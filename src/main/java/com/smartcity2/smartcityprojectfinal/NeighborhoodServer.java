@@ -8,6 +8,7 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import java.io.IOException;
 import java.util.logging.Logger;
+
 /**
  *
  * @author ThomasNCI
@@ -25,6 +26,16 @@ public class NeighborhoodServer {
                     .build();
 
             server.start();
+            try {
+                ServiceRegistration.getInstance().registerService(
+                        "_grpc._tcp.local.",
+                        "NeighborhoodService",
+                        port,
+                        "Neighborhood Service"
+                );
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             logger.info("NeighborhoodService started on port " + port);
 
             server.awaitTermination();

@@ -202,7 +202,6 @@ public class SmartCityClient {
         System.out.println("Neighborhood: " + response.getNeighborhoodId());
         System.out.println("Allocated: " + response.getAllocatedAmount());
         System.out.println("Status: " + response.getStatus());
-        System.out.println("-----------------------------------");
     }
 
     //BudgetPlan - BiDi Streaming

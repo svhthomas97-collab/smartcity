@@ -8,6 +8,7 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import java.io.IOException;
 import java.util.logging.Logger;
+
 /**
  *
  * @author ThomasNCI
@@ -25,6 +26,16 @@ public class AirQualityServer {
                     .build();
 
             server.start();
+            try {
+                ServiceRegistration.getInstance().registerService(
+                        "_grpc._tcp.local.",
+                        "AirQualityService",
+                        port,
+                        "Air Quality Service"
+                );
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             logger.info("AirQualityService started on port " + port);
 
             server.awaitTermination();
