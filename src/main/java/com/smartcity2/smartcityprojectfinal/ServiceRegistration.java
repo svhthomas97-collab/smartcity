@@ -8,6 +8,7 @@ package com.smartcity2.smartcityprojectfinal;
  *
  * @author trion
  */
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;

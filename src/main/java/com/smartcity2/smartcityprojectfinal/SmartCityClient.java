@@ -37,18 +37,19 @@ import generated.grpc.budget.NeighborhoodBudgetRequest;
 public class SmartCityClient {
 
     //private final ManagedChannel channel; declaration used only with NeighborhoodServer
-    private final ManagedChannel neighborhoodChannel;
-    private final ManagedChannel airQualityChannel;
-    private final ManagedChannel budgetChannel;
+    //(Private was removed from stub packages to make it visible for GUI.
+    final ManagedChannel neighborhoodChannel;
+     final ManagedChannel airQualityChannel;
+     final ManagedChannel budgetChannel;
     //NeighborhoodService Stub (UNARY, STREAMING)
-    private final NeighborhoodServiceGrpc.NeighborhoodServiceBlockingStub neighborhoodBlockingStub;
-    private final NeighborhoodServiceGrpc.NeighborhoodServiceStub neighborhoodAsyncStub;
+     final NeighborhoodServiceGrpc.NeighborhoodServiceBlockingStub neighborhoodBlockingStub;
+     final NeighborhoodServiceGrpc.NeighborhoodServiceStub neighborhoodAsyncStub;
     // AirQuality Stub (UNARY, STREAMING)
-    private final AirQualityServiceGrpc.AirQualityServiceBlockingStub airBlockingStub;
-    private final AirQualityServiceGrpc.AirQualityServiceStub airAsyncStub;
+     final AirQualityServiceGrpc.AirQualityServiceBlockingStub airBlockingStub;
+     final AirQualityServiceGrpc.AirQualityServiceStub airAsyncStub;
     //BudgetAllocation Stub (Unary, BiDi)
-    private final BudgetAllocationServiceGrpc.BudgetAllocationServiceBlockingStub budgetBlockingStub;
-    private final BudgetAllocationServiceGrpc.BudgetAllocationServiceStub budgetAsyncStub;
+     final BudgetAllocationServiceGrpc.BudgetAllocationServiceBlockingStub budgetBlockingStub;
+     final BudgetAllocationServiceGrpc.BudgetAllocationServiceStub budgetAsyncStub;
 
     public SmartCityClient() {
         /*        channel = ManagedChannelBuilder.forAddress("localhost", 50051)
@@ -278,7 +279,7 @@ public class SmartCityClient {
             client.registerSensor("S002", "Industrial Zone");
 
             client.monitorAirQuality("Downtown");
-            
+
             //BudgetAllocation tests
             client.getBudgetPlan("N001");
             client.allocateBudgetBiDi();
@@ -295,4 +296,17 @@ public class SmartCityClient {
             }
         }
     }
+
+    // GUI version client streaming (get from mathclient example)
+    public StreamObserver<NeighborhoodRequest> analyzeNeighborhoodsGUI(
+            StreamObserver<NeighborhoodList> responseObserver) {
+        return neighborhoodAsyncStub.analyzeNeighborhoods(responseObserver);
+
+    }
+    // GUI version BiDi streaming (get from convertBase in Mathclient example)
+    public StreamObserver<BudgetPriorityRequest> allocateBudgetGUI(
+            StreamObserver<BudgetPlan> responseObserver) {
+        return budgetAsyncStub.allocateBudget(responseObserver);
+    }
+
 }
