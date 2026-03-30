@@ -39,17 +39,17 @@ public class SmartCityClient {
     //private final ManagedChannel channel; declaration used only with NeighborhoodServer
     //(Private was removed from stub packages to make it visible for GUI.
     final ManagedChannel neighborhoodChannel;
-     final ManagedChannel airQualityChannel;
-     final ManagedChannel budgetChannel;
+    final ManagedChannel airQualityChannel;
+    final ManagedChannel budgetChannel;
     //NeighborhoodService Stub (UNARY, STREAMING)
-     final NeighborhoodServiceGrpc.NeighborhoodServiceBlockingStub neighborhoodBlockingStub;
-     final NeighborhoodServiceGrpc.NeighborhoodServiceStub neighborhoodAsyncStub;
+    final NeighborhoodServiceGrpc.NeighborhoodServiceBlockingStub neighborhoodBlockingStub;
+    final NeighborhoodServiceGrpc.NeighborhoodServiceStub neighborhoodAsyncStub;
     // AirQuality Stub (UNARY, STREAMING)
-     final AirQualityServiceGrpc.AirQualityServiceBlockingStub airBlockingStub;
-     final AirQualityServiceGrpc.AirQualityServiceStub airAsyncStub;
+    final AirQualityServiceGrpc.AirQualityServiceBlockingStub airBlockingStub;
+    final AirQualityServiceGrpc.AirQualityServiceStub airAsyncStub;
     //BudgetAllocation Stub (Unary, BiDi)
-     final BudgetAllocationServiceGrpc.BudgetAllocationServiceBlockingStub budgetBlockingStub;
-     final BudgetAllocationServiceGrpc.BudgetAllocationServiceStub budgetAsyncStub;
+    final BudgetAllocationServiceGrpc.BudgetAllocationServiceBlockingStub budgetBlockingStub;
+    final BudgetAllocationServiceGrpc.BudgetAllocationServiceStub budgetAsyncStub;
 
     public SmartCityClient() {
         /*        channel = ManagedChannelBuilder.forAddress("localhost", 50051)
@@ -297,16 +297,25 @@ public class SmartCityClient {
         }
     }
 
+    /*
+    Removed to simplify implementation
     // GUI version client streaming (get from mathclient example)
     public StreamObserver<NeighborhoodRequest> analyzeNeighborhoodsGUI(
             StreamObserver<NeighborhoodList> responseObserver) {
         return neighborhoodAsyncStub.analyzeNeighborhoods(responseObserver);
 
     }
+
     // GUI version BiDi streaming (get from convertBase in Mathclient example)
     public StreamObserver<BudgetPriorityRequest> allocateBudgetGUI(
             StreamObserver<BudgetPlan> responseObserver) {
         return budgetAsyncStub.allocateBudget(responseObserver);
     }
+
+    //GUI version Server streaming
+    public void monitorAirQualityGUI(String zone, StreamObserver<AirQuality> responseObserver) {
+        Zone request = Zone.newBuilder().setZone(zone).build();
+        airAsyncStub.monitorAirQuality(request, responseObserver);
+    }*/
 
 }
