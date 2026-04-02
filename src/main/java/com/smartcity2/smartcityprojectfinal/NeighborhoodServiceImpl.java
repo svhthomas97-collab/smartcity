@@ -4,6 +4,7 @@
  */
 package com.smartcity2.smartcityprojectfinal;
 
+import io.grpc.Status;
 import smartcity.generated.neighborhood.NeighborhoodList;
 import smartcity.generated.neighborhood.NeighborhoodRequest;
 import smartcity.generated.neighborhood.NeighborhoodServiceGrpc.NeighborhoodServiceImplBase;
@@ -74,8 +75,8 @@ public class NeighborhoodServiceImpl extends NeighborhoodServiceImplBase {
         NeighborhoodStatus response = NeighborhoodStatus.newBuilder()
                 .setNeighborhoodId(id)
                 .setScore(score)
-                .setClassification(classify(score))     // "Critical", "AtRisk" or "Stable"
-                .setInformalSettlement(score < 45)      // true if the score is less than 45
+                .setClassification(classify(score)) // "Critical", "AtRisk" or "Stable"
+                .setInformalSettlement(score < 45) // true if the score is less than 45
                 .setDescription(descriptionFor(classify(score)))
                 .build();
 
@@ -100,8 +101,11 @@ public class NeighborhoodServiceImpl extends NeighborhoodServiceImplBase {
                 double[] values = neighborhoodData.get(id);
 
                 if (values == null) {
-                    // If the ID is invalid, ignore and proceed to the next one
-                    logger.warning("Invalid neighborhood, skipping: " + id);
+                    responseObserver.onError(
+                            Status.NOT_FOUND
+                                    .withDescription("Neighborhood not found: " + id)
+                                    .asRuntimeException()
+                    );
                     return;
                 }
 
@@ -141,16 +145,23 @@ public class NeighborhoodServiceImpl extends NeighborhoodServiceImplBase {
 
     // Classify if the neighborhood is Critical, AtRisk or Stable using the score
     private String classify(double score) {
-        if (score < 40) return "Critical";
-        if (score < 70) return "AtRisk";
+        if (score < 40) {
+            return "Critical";
+        }
+        if (score < 70) {
+            return "AtRisk";
+        }
         return "Stable";
     }
 
     private String descriptionFor(String classification) {
         switch (classification) {
-            case "Critical": return "Neighborhood conditions are: Critical - Needs immediate attention";
-            case "AtRisk":   return "Neighborhood conditions are: At Risk - Needs attention.";
-            default:         return "Neighborhood conditions are: Stable.";
+            case "Critical":
+                return "Neighborhood conditions are: Critical - Needs immediate attention";
+            case "AtRisk":
+                return "Neighborhood conditions are: At Risk - Needs attention.";
+            default:
+                return "Neighborhood conditions are: Stable.";
         }
     }
 }
