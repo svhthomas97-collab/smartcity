@@ -28,6 +28,8 @@ import generated.grpc.budget.BudgetAllocationServiceGrpc;
 import generated.grpc.budget.BudgetPlan;
 import generated.grpc.budget.BudgetPriorityRequest;
 import generated.grpc.budget.NeighborhoodBudgetRequest;
+import io.grpc.Metadata;
+import io.grpc.stub.MetadataUtils;
 
 /**
  *
@@ -257,6 +259,46 @@ public class SmartCityClient {
         latch.await(10, TimeUnit.SECONDS);
     }
 
+    // METADATA IMPLEMENTATION
+    public void getNeighborhoodStatusWithMetadata(String neighborhoodId) {
+
+        //Create the metadata object
+        Metadata metadata = new Metadata();
+
+        // kEY SETTING - the idea here is generating an id to the client in order to find who ran the system.
+        Metadata.Key<String> clientID
+                = Metadata.Key.of("client-id", Metadata.ASCII_STRING_MARSHALLER);
+
+        Metadata.Key<String> serviceKey // name of the service that was run
+                = Metadata.Key.of("requesting-service", Metadata.ASCII_STRING_MARSHALLER);
+
+        // declare variables clientID = name of the client, serviceKey = name of the service
+        metadata.put(clientID, "SmartCityGUI");
+        metadata.put(serviceKey, "NeighborhoodService");
+
+        // adds metadata to the stub, all the request made is going with the metadata
+        NeighborhoodServiceGrpc.NeighborhoodServiceBlockingStub stubWithMetadata
+                = neighborhoodBlockingStub.withInterceptors(
+                        MetadataUtils.newAttachHeadersInterceptor(metadata)
+                );
+
+        //Requests but now with the metadata
+        NeighborhoodRequest request = NeighborhoodRequest.newBuilder()
+                .setNeighborhoodId(neighborhoodId)
+                .build();
+
+        try {
+            NeighborhoodStatus response = stubWithMetadata.getNeighborhoodStatus(request);
+            System.out.println("[METADATA SENT] client-id=SmartCityGUI");
+            System.out.println("Neighborhood ID: " + response.getNeighborhoodId());
+            System.out.println("Score: " + response.getScore());
+            System.out.println("Classification: " + response.getClassification());
+        } catch (io.grpc.StatusRuntimeException e) {
+            // Based on HelloWorld from the lecturer 
+            System.err.println("RPC failed: " + e.getStatus());
+        }
+    }
+
     public void shutdown() throws InterruptedException {
 
         //channel.shutdown().awaitTermination(5, TimeUnit.SECONDS); line used when testing only Neighborhood, now with AirQ it needs two channels.
@@ -271,7 +313,8 @@ public class SmartCityClient {
 
         try {
             // Neighborhood tests
-            client.getNeighborhoodStatus("N001");
+            //client.getNeighborhoodStatus("N001");
+            client.getNeighborhoodStatusWithMetadata("N001"); // - testing metadata
             client.analyzeNeighborhoods(Arrays.asList("N001", "N003", "N005"));
 
             // Air Quality tests
@@ -317,5 +360,4 @@ public class SmartCityClient {
         Zone request = Zone.newBuilder().setZone(zone).build();
         airAsyncStub.monitorAirQuality(request, responseObserver);
     }*/
-
 }
